@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!--주의! 아래 순서를 지켜야함. 라이브러리간 의존성이 있음. (hammer.js는 다른 plugin 보다 먼저 import되어야함.)-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js" integrity="sha512-klQv6lz2YR+MecyFYMFRuU2eAl8IPRo6zHnsc9n142TJuJHS8CG0ix4Oq9na9ceeg1u5EkBfZsFcV3U7J51iew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/1.4.0/chartjs-plugin-annotation.min.js" integrity="sha512-HrwQrg8S/xLPE6Qwe7XOghA/FOxX+tuVF4TxbvS73/zKJSs/b1gVl/P4MsdfTFWYFYg/ISVNYIINcg35Xvr6QQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.0.0/chartjs-plugin-datalabels.min.js" integrity="sha512-R/QOHLpV1Ggq22vfDAWYOaMd5RopHrJNMxi8/lJu8Oihwi4Ho4BRFeiMiCefn9rasajKjnx9/fTQ/xkWnkDACg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+</head>
+<body>
+
+    <div>
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script>
+        const labels = ['2021/8/23','2021/8/24','2021/8/25','2021/8/26','2021/8/27'
+                       ,'2021/8/30' ,'2021/8/31','2021/9/1','2021/9/2','2021/9/3'
+                       ,'2021/9/6','2021/9/7','2021/9/8','2021/9/9','2021/9/10'
+                       ,'2021/9/13','2021/9/14','2021/9/15','2021/9/16','2021/9/17'
+                       ,'2021/9/23','2021/9/27','2021/9/30','2021/10/1','2021/10/4'
+                       ,'2021/10/5','2021/10/6','2021/10/7','2021/10/8','2021/10/11'
+                       ,'2021/10/12','2021/10/13','2021/10/14']; 
+                       
+        const waterLevelDataArr = [0,-0.05,0.05,-0.14,-0.11
+                                ,-0.12,-0.07,-0.10,-0.02,0.08
+                                ,0.20,0.25,0.52,0.43,0.49
+                                ,0.55,0.63,0.69,0.80,0.85
+                                ,0.98,1.06,1.16,1.33,1.37
+                                ,1.49,1.62,1.75,1.79,1.85
+                                ,1.92,1.95,1.91];
+        const depthDataArr = [0.0,0.0,0.0,0.0,-2.0
+                        ,-2.0,-2.0,-2.0,-2.5,-2.5
+                        ,-2.5,-2.5,-2.5,-2.5,-3.0
+                        ,-3.0,-3.0,-3.0,-3.0,-4.0
+                        ,-4.0,-4.0,-4.0,-5.0,-5.0
+                        ,-5.0,-5.0,-6.5,-6.5,-6.5
+                        ,-6.5,-6.5,-6.5];       
+                        
+        const MAX_WATER_LEVEL = Math.max.apply(null, waterLevelDataArr);
+        const MIN_WATER_LEVEL = Math.min.apply(null, waterLevelDataArr);
+        
+
+        const ctx = {
+            type: 'line',
+            plugins:[ChartDataLabels],
+            data: {
+                labels: labels,
+                datasets:[{
+                    label: 'W-1',
+                    backgroundColor: labels.map(function(day,i) {
+                                                        if(waterLevelDataArr[i] == MAX_WATER_LEVEL) {
+                                                            return 'red';
+                                                        } else if(waterLevelDataArr[i] == MIN_WATER_LEVEL) {
+                                                            return 'blue';
+                                                        } else {
+                                                            return 'rgb(54, 162, 0)';
+                                                        }
+                                                    }),
+                    borderColor: labels.map(function(day,i) {
+                                                        if(waterLevelDataArr[i] == MAX_WATER_LEVEL) {
+                                                            return 'red';
+                                                        } else if(waterLevelDataArr[i] == MIN_WATER_LEVEL) {
+                                                            return 'blue';
+                                                        } else {
+                                                            return 'rgb(54, 162, 0)';
+                                                        }
+                                                    }),
+                    borderWidth: 2,
+                    pointStyle:'rect', //default: cirle
+                    data: waterLevelDataArr,
+                    fill: false,
+                    tension: 0.1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: '굴착고',
+                    backgroundColor: 'black',
+                    borderColor: 'black',
+                    borderWidth: 2,
+                    pointStyle:'dash',
+                    data: depthDataArr,
+                    fill: false,
+                    stepped: true,
+                    tension: 100,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                stacked: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Water Level Graph',
+                        padding: {
+                            top: 10,
+                            bottom: 30
+                        }
+                    },
+                    legend : {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top', 
+                        formatter:function(value,context){
+                        
+                            // data 에 넣은 데이타 순번. 0 부터 시작
+                            var idx = context.dataIndex;
+                            
+                            let returnValue;
+                            if (context.dataset.label == 'W-1') {
+                                if(waterLevelDataArr[idx] == MAX_WATER_LEVEL || waterLevelDataArr[idx] == MIN_WATER_LEVEL) {
+                                    returnValue = value;
+                                } else {
+                                    returnValue = '';
+                                }
+                            } else {
+                                returnValue = '';
+                            }
+
+                        
+                            return returnValue;
+                        }
+                    },
+                    zoom: {
+                        pan: {
+                          enabled: true,
+                            mode: 'xyy1',
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: 'yy1' //y축 & y1축 함께 zoom 
+                        },
+                        limits: {
+                            y: { min: -10, max:2},
+                            y1: {min: -40, max:0}
+                        }
+                    },
+                    autocolors: false,
+                    annotation: {
+                        annotations: {
+                            line1: {
+                                type: 'line',
+                                yMin: -4,
+                                yMax: -4,
+                                value: -4,
+                                borderColor: 'blue',
+                                borderWidth: 2,
+                                borderDash:[10,10],
+                                label: {
+                                    enabled: true,
+                                    position: 'start',
+                                    backgroundColor: 'blue',
+                                    borderColor: 'blue',
+                                    borderRadius: 3,
+                                    borderWidth: 1,
+                                    content: (ctx) => '1차관리기준(안전)' ,
+                                    rotation: 'auto'
+                                },
+                            },
+                            line2: {
+                                type: 'line',
+                                yMin: -6,
+                                yMax: -6,
+                                value: -6,
+                                borderColor: 'orange',
+                                borderWidth: 2,
+                                borderDash:[10,10],
+                                label: {
+                                    enabled: true,
+                                    position: 'start',
+                                    backgroundColor: 'orange',
+                                    borderColor: 'orange',
+                                    borderRadius: 3,
+                                    borderWidth: 1,
+                                    content: (ctx) => '2차관리기준(주의)' ,
+                                    rotation: 'auto'
+                                },
+                            },
+                            line3: {
+                                type: 'line',
+                                yMin: -8,
+                                yMax: -8,
+                                value: -8,
+                                borderColor: 'red',
+                                borderWidth: 2,
+                                borderDash:[10,10],
+                                label: {
+                                    enabled: true,
+                                    position: 'start',
+                                    backgroundColor: 'red',
+                                    borderColor: 'red',
+                                    borderRadius: 3,
+                                    borderWidth: 1,
+                                    content: (ctx) => '3차관리기준(위험)' ,
+                                    rotation: 'auto'
+                                },
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: '경과일수(Day)'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        title: {
+                            display: true,
+                            text:'누적변위(m)'
+                        },
+                        ticks: {
+                            stepSize: 2
+                        },
+                        position: 'left'
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        min: 1,
+                        max: -40,
+                        ticks: {
+                            stepSize: 5
+                        },
+                        grid: {
+                            drawOnChartArea: false // 그리드에 y1 축에 대한 선 표현 여부 
+                        }
+                    } 
+                }
+            }
+        };
+
+
+        const myChart = new Chart(document.getElementById('myChart'), ctx);
+        
+    </script>
+</body>
+</html>
+
+
